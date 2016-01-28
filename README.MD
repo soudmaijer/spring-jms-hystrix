@@ -1,0 +1,1 @@
+A Jms MessageListenerContainer implementation that throttles the dequeue rate based on CircuitBreaker metrics. 
