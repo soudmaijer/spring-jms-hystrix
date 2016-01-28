@@ -17,7 +17,6 @@ import java.util.List;
 public class CircuitBreakerAwareMessageListenerContainer extends DefaultMessageListenerContainer implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(CircuitBreakerAwareMessageListenerContainer.class);
-    private List<HystrixCircuitBreaker> hystrixCircuitBreakers = new ArrayList<>();
     private RateLimiter rateLimiter;
     private List<String> hystrixCommandKeys;
     private double permitsPerSecond = 0.5;
@@ -27,18 +26,22 @@ public class CircuitBreakerAwareMessageListenerContainer extends DefaultMessageL
 
     @Override
     protected boolean receiveAndExecute(Object invoker, Session session, MessageConsumer consumer) throws JMSException {
-        determineHystrixCircuitBreakers();
         if (anyRequestNotAllowed()) {
+            LOG.info("Some circuit tripped, hitting rateLimiter...");
             rateLimiter.acquire(); // may wait
         }
         return super.receiveAndExecute(invoker, session, consumer);
     }
 
-    protected void determineHystrixCircuitBreakers() {
+    protected List<HystrixCircuitBreaker> determineHystrixCircuitBreakers() {
+        List<HystrixCircuitBreaker> hystrixCircuitBreakers = new ArrayList<>();
+
         if (hystrixCommandKeys == null) {
-            return;
+            return hystrixCircuitBreakers;
         }
+
         for (String key : hystrixCommandKeys) {
+
             try {
                 HystrixCommandKey hystrixCommandKey = HystrixCommandKey.Factory.asKey(key);
                 if (hystrixCommandKey == null) {
@@ -55,9 +58,11 @@ public class CircuitBreakerAwareMessageListenerContainer extends DefaultMessageL
                 LOG.error("An exception occurred determining the HystrixCommand or HystrixCircuitBreaker for HystrixCommand with key={}", key);
             }
         }
+        return hystrixCircuitBreakers;
     }
 
     protected boolean anyRequestNotAllowed() {
+        List<HystrixCircuitBreaker> hystrixCircuitBreakers = determineHystrixCircuitBreakers();
         return hystrixCircuitBreakers.stream().anyMatch(it -> !it.allowRequest());
     }
 

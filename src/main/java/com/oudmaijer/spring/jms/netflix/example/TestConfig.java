@@ -48,10 +48,9 @@ public class TestConfig {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class);
 
         JmsTemplate bean = context.getBean(JmsTemplate.class);
-        bean.convertAndSend("myQueue", "bla");
-        bean.convertAndSend("myQueue", "bla");
-        while (context.isActive()) {
-            Thread.sleep(1000L);
+
+        for(int i=0; i<1000;i++) {
+            bean.convertAndSend("myQueue", "bla"+i);
         }
     }
 }
