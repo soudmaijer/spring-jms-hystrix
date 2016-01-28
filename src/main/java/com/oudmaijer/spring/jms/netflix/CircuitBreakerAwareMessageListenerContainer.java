@@ -5,6 +5,7 @@ import com.netflix.hystrix.HystrixCircuitBreaker;
 import com.netflix.hystrix.HystrixCommandKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 
 import javax.jms.JMSException;
@@ -13,12 +14,13 @@ import javax.jms.Session;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CircuitBreakerAwareMessageListenerContainer extends DefaultMessageListenerContainer {
+public class CircuitBreakerAwareMessageListenerContainer extends DefaultMessageListenerContainer implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(CircuitBreakerAwareMessageListenerContainer.class);
     private List<HystrixCircuitBreaker> hystrixCircuitBreakers = new ArrayList<>();
-    private RateLimiter rateLimiter = RateLimiter.create(0.5);
+    private RateLimiter rateLimiter;
     private List<String> hystrixCommandKeys;
+    private double permitsPerSecond = 0.5;
 
     public CircuitBreakerAwareMessageListenerContainer() {
     }
@@ -65,5 +67,16 @@ public class CircuitBreakerAwareMessageListenerContainer extends DefaultMessageL
 
     public void setRateLimiter(RateLimiter rateLimiter) {
         this.rateLimiter = rateLimiter;
+    }
+
+    public void setPermitsPerSecond(double permitsPerSecond) {
+        this.permitsPerSecond = permitsPerSecond;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        super.afterPropertiesSet();
+        this.rateLimiter = RateLimiter.create(permitsPerSecond);
+
     }
 }

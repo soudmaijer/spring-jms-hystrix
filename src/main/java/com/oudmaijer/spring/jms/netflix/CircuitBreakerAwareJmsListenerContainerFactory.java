@@ -27,7 +27,7 @@ public class CircuitBreakerAwareJmsListenerContainerFactory extends DefaultJmsLi
                 if (strings != null) {
                     CircuitBreakerAwareMessageListenerContainer container = (CircuitBreakerAwareMessageListenerContainer) listenerContainer;
                     container.setHystrixCommandKeys(Arrays.asList(strings));
-                    container.setRateLimiter(RateLimiter.create(declaredAnnotation.permitsPerSecond()));
+                    container.setPermitsPerSecond(declaredAnnotation.permitsPerSecond());
                 }
             }
         }
