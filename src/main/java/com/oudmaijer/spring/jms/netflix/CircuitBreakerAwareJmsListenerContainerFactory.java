@@ -1,6 +1,5 @@
 package com.oudmaijer.spring.jms.netflix;
 
-import com.google.common.util.concurrent.RateLimiter;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.config.JmsListenerEndpoint;
 import org.springframework.jms.config.MethodJmsListenerEndpoint;
